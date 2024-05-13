@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type Otp {
+  value     String
+  expiresAt DateTime
+}
+
+model User {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  email            String    @unique
+  name             String
+  mobile           String
+  password         String
+  image            String?
+  isVerified       Boolean   @default(false)
+  otp              Otp?
+  messagesSent     Message[] @relation("messagesSent")
+  messagesReceived Message[] @relation("messagesReceived")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Message {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  message    String
+  sender     User     @relation("messagesSent", fields: [senderId], references: [id])
+  senderId   String   @map("sender_id") @db.ObjectId
+  receiver   User     @relation("messagesReceived", fields: [receiverId], references: [id])
+  receiverId String   @map("receiver_id") @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("messages")
+}
+
+model Room {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  isPrivate Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rooms")
+}
