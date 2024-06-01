@@ -10,6 +10,7 @@ import {
 
 import {
   getOtpService,
+  logOutService,
   loginService,
   meService,
   signUpService,
@@ -18,19 +19,25 @@ import {
 
 const router = Router();
 
-router.post("/signup", validateData(userRegistrationSchema), signUpService);
+router.post(
+  "/signup",
+  validateData(userRegistrationSchema, "body"),
+  signUpService
+);
 
-router.post("/login", validateData(userLoginSchema), loginService);
+router.post("/login", validateData(userLoginSchema, "body"), loginService);
 
 router.get("/me", authenticateToken, meService);
 
-router.post("/get-otp", validateData(userSendOtpSchema), getOtpService);
+router.post("/get-otp", validateData(userSendOtpSchema, "body"), getOtpService);
 
 router.post(
   "/verify-user",
-  validateData(userVerifyOtpSchema),
+  validateData(userVerifyOtpSchema, "body"),
   verifyUserService
 );
+
+router.post("/logout", authenticateToken, logOutService);
 
 const userRouter = router;
 export default userRouter;

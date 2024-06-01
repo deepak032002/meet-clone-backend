@@ -13,40 +13,54 @@ type Otp {
 }
 
 model User {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  email            String    @unique
-  name             String
-  mobile           String
-  password         String
-  image            String?
-  isVerified       Boolean   @default(false)
-  otp              Otp?
-  messagesSent     Message[] @relation("messagesSent")
-  messagesReceived Message[] @relation("messagesReceived")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  email      String      @unique
+  name       String
+  mobile     String
+  password   String
+  image      String?
+  isVerified Boolean     @default(false)
+  otp        Otp?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  roomUser   Room_User[]
+  room       Room[]
 
   @@map("users")
 }
 
-model Message {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  message    String
-  sender     User     @relation("messagesSent", fields: [senderId], references: [id])
-  senderId   String   @map("sender_id") @db.ObjectId
-  receiver   User     @relation("messagesReceived", fields: [receiverId], references: [id])
-  receiverId String   @map("receiver_id") @db.ObjectId
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model Room {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  roomId    String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  owner     User        @relation(fields: [ownerId], references: [id])
+  ownerId   String      @db.ObjectId
+  roomUser  Room_User[]
 
-  @@map("messages")
+  @@map("rooms")
 }
 
-model Room {
+model Room_User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  isPrivate Boolean
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    String   @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  peerId    String   @unique
+  socketId  String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("rooms")
+  @@index([roomId, userId])
+  @@map("room_users")
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("messages")
 }

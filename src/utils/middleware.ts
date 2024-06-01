@@ -6,6 +6,7 @@ import { responseGenerator } from "./helper";
 import { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { ExtendedError } from "socket.io/dist/namespace";
+import cookieParser from "cookie-parser";
 
 declare global {
   namespace Express {
@@ -16,11 +17,23 @@ declare global {
 }
 
 export function validateData(
-  schema: z.ZodEffects<z.ZodObject<any, any>> | z.ZodObject<any, any>
+  schema: z.ZodEffects<z.ZodObject<any, any>> | z.ZodObject<any, any>,
+  type: "body" | "query" | "params"
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.body);
+      if (type === "body") {
+        schema.parse(req.body);
+      }
+
+      if (type === "query") {
+        schema.parse(req.query);
+      }
+
+      if (type === "params") {
+        schema.parse(req.params);
+      }
+
       next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -50,8 +63,9 @@ export function authenticateToken(
   res: Response,
   next: NextFunction
 ) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies["geek-token"] as string;
+  // const authHeader = req.headers["authorization"];
+  // const token = authHeader && authHeader.split(" ")[1];
   if (token == null) {
     return responseGenerator(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
   }
@@ -71,8 +85,9 @@ export function authenticateSocketToken(
   next: (err?: ExtendedError | undefined) => void
 ) {
   try {
-    const token =
-      socket.handshake.auth?.token || socket.handshake.headers?.token;
+    const token = socket.handshake.headers?.cookie
+      ? (socket.handshake.headers?.cookie?.split("=")[1] as string)
+      : (socket.handshake.headers?.token as string);
 
     if (token == null) {
       throw new Error("Unauthorized");

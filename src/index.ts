@@ -1,62 +1,48 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-import pinoHttp from "pino-http";
 import cors from "cors";
+import morgon from "morgan";
+import cookieParser from "cookie-parser";
 
 import prisma from "./prisma";
 import userRouter from "./routes/user.routes";
 import roomRouter from "./routes/room.routes";
 import { authenticateSocketToken } from "./utils/middleware";
+import { socketFn } from "./socket";
 
-const pino = pinoHttp({
-  level: "debug",
-  transport: {
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-    },
-  },
-});
+const corsOption = {
+  origin: "http://localhost:3000",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
 const main = async () => {
   const app = express();
-  app.set("x-powered-by", false);
-  app.set("trust proxy", true);
-  app.use(pino);
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-    })
-  );
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use("/api/v1/user", userRouter);
-  app.use("/api/v1/room", roomRouter);
   const server = http.createServer(app);
 
-  const io = new Server(server);
+  app.set("x-powered-by", false);
+  app.set("trust proxy", true);
+  app.use(cors(corsOption));
+  app.use(morgon("dev"));
+  app.use(express.json());
+  app.use(cookieParser());
+  app.use(express.urlencoded({ extended: true }));
+
+  app.use("/api/v1/user", userRouter);
+  app.use("/api/v1/room", roomRouter);
+
+  const io = new Server(server, {
+    cors: corsOption,
+  });
 
   io.use(authenticateSocketToken);
 
-  io.on("connection", (socket) => {
-    socket.on("join", (roomId: string) => {
-      socket.join(roomId);
-      socket.broadcast.to(roomId).emit("user-connected", socket.id);
-    });
+  io.on("connection", (socket) => socketFn(socket, io));
 
-    socket.on("room-size", () => {
-      console.log(socket.rooms);
-    });
-    socket.on("disconnecting", () => {
-      console.log(socket.rooms);
-    });
-  });
-
-  pino.logger.info("connected to database");
-
-  server.listen("5000", () => {
-    pino.logger.info("server is running on port 5000");
+  console.log("Connected to db successfully!");
+  server.listen(5000, () => {
+    console.log("server is running on port 5000");
   });
 };
 

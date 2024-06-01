@@ -98,6 +98,12 @@ export const loginService = async (req: Request, res: Response) => {
       }
     );
 
+    res.cookie("geek-token", token, {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
     return responseGenerator(res, StatusCodes.OK, "Login successful", {
       token,
     });
@@ -245,6 +251,20 @@ export const verifyUserService = async (req: Request, res: Response) => {
     });
 
     return responseGenerator(res, StatusCodes.OK, "User verified");
+  } catch (error) {
+    console.error(error);
+    responseGenerator(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error"
+    );
+  }
+};
+
+export const logOutService = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("geek-token");
+    return responseGenerator(res, StatusCodes.OK, "Logout successful");
   } catch (error) {
     console.error(error);
     responseGenerator(

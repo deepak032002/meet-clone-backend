@@ -38,3 +38,9 @@ export const userVerifyOtpSchema = z
     otp: z.string().min(6),
   })
   .strict();
+
+export const getRoomInfoSchema = z
+  .object({
+    roomId: z.string(),
+  })
+  .strict();
