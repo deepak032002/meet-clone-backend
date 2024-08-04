@@ -2,18 +2,17 @@ import * as nodemailer from 'nodemailer';
 
 async function sendMail(email: string, subject: string, html: string) {
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
+    host: process.env.SMTP_HOST,
+    port: 465,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD,
     },
-    service: 'gmail',
     secure: true,
   });
 
-  return transporter.sendMail({
-    from: 'locksevagyaan@gmail.com',
+  return await transporter.sendMail({
+    from: `Chat Service ${process.env.SMTP_USER}`,
     to: email,
     subject: subject,
     html: html,

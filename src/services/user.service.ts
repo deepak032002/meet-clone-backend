@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../prisma";
-import { responseGenerator } from "../utils/helper";
+import { generatePresignedUrl, responseGenerator } from "../utils/helper";
 import * as argon2 from "argon2";
 import { Request, Response } from "express";
 import sendMail from "../utils/sendMail";
@@ -26,12 +26,14 @@ export const signUpService = async (req: Request, res: Response) => {
 
     const hashPassword = await argon2.hash(req.body.password);
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        name: req.body.name,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         email: req.body.email,
         mobile: req.body.mobile,
         password: hashPassword,
+        image: req.body.image,
       },
     });
 
@@ -119,7 +121,8 @@ export const meService = async (req: Request, res: Response) => {
       },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         mobile: true,
         isVerified: true,
@@ -245,6 +248,23 @@ export const verifyUserService = async (req: Request, res: Response) => {
     });
 
     return responseGenerator(res, StatusCodes.OK, "User verified");
+  } catch (error) {
+    console.error(error);
+    responseGenerator(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error"
+    );
+  }
+};
+
+export const uploadImage = async (req: Request, res: Response) => {
+  try {
+    const url = generatePresignedUrl();
+
+    return responseGenerator(res, StatusCodes.OK, "Successfully generated", {
+      url,
+    });
   } catch (error) {
     console.error(error);
     responseGenerator(

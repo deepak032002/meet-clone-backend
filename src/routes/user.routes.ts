@@ -13,6 +13,7 @@ import {
   loginService,
   meService,
   signUpService,
+  uploadImage,
   verifyUserService,
 } from "../services/user.service";
 
@@ -31,6 +32,8 @@ router.post(
   validateData(userVerifyOtpSchema),
   verifyUserService
 );
+
+router.get("/upload-image", uploadImage);
 
 const userRouter = router;
 export default userRouter;

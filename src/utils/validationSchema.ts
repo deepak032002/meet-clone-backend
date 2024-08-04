@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const userRegistrationSchema = z
   .object({
-    name: z.string().min(3),
+    firstName: z.string().min(3),
+    lastName: z.string().min(3),
     email: z.string().email(),
     password: z.string().min(8),
     mobile: z
@@ -12,6 +13,7 @@ export const userRegistrationSchema = z
         "Phone number is not valid"
       ),
     confirmPassword: z.string().min(8),
+    image: z.string().optional(),
   })
   .strict()
   .refine((data) => data.password === data.confirmPassword, {

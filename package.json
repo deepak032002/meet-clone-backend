@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start:prod": "node dist/index.js"
+    "start:prod": "node dist/index.js",
+    "prisma:db:push": "prisma db push"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.13.0",
+    "@prisma/client": "^5.17.0",
     "argon2": "^0.40.1",
+    "cloudinary": "^2.4.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "http-status-codes": "^2.3.0",
@@ -32,7 +34,7 @@
     "@types/node": "^20.12.7",
     "@types/nodemailer": "^6.4.15",
     "nodemon": "^3.1.0",
-    "prisma": "^5.13.0",
+    "prisma": "^5.17.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
